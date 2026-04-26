@@ -1,0 +1,1 @@
+﻿-- SELECT * FROM ML.FORECAST(MODEL resourceradar.demand_forecast, STRUCT(24 AS horizon))

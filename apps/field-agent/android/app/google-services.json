@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1039116498343",
+    "project_id": "resource-radar-ai",
+    "storage_bucket": "resource-radar-ai.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1039116498343:android:52588a01a250edccfcb282",
+        "android_client_info": {
+          "package_name": "com.resourceradar.field_agent"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAUdtRr1sCN501zHWurWf0z1xv5ntVKM6o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

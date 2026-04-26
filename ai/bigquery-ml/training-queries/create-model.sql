@@ -1,0 +1,1 @@
+﻿-- CREATE MODEL resourceradar.demand_forecast OPTIONS(model_type='ARIMA_PLUS')

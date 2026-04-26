@@ -1,0 +1,32 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "need_signals",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "need_type", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "ward_id", "order": "ASCENDING" },
+        { "fieldPath": "created_at", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "need_signals",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "ngo_id", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "created_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "need_signals",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "reporter_id", "order": "ASCENDING" },
+        { "fieldPath": "created_at", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

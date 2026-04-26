@@ -1,0 +1,1 @@
+﻿-- SELECT * FROM ML.EVALUATE(MODEL resourceradar.demand_forecast)

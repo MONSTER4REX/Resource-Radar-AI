@@ -1,0 +1,1 @@
+﻿Analyse: {signal_text} Ward: {ward_id} Photo: {has_photo}

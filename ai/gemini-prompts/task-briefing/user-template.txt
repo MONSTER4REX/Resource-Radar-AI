@@ -1,0 +1,1 @@
+﻿Task: {need_type} Location: {address} People: {count} Language: {lang}

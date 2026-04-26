@@ -1,0 +1,1 @@
+﻿// Firestore admin client singleton

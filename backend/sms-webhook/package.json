@@ -1,0 +1,30 @@
+{
+  "name": "signal-ingestion-bot",
+  "version": "1.0.0",
+  "description": "ResourceRadar Signal ingestion via Telegram Bot + Gemini 1.5 Flash parsing",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@google-cloud/firestore": "^7.10.0",
+    "@google-cloud/pubsub": "^4.9.0",
+    "@google-cloud/vertexai": "^1.9.0",
+    "@google/generative-ai": "^0.24.1",
+    "@types/express": "^5.0.6",
+    "dotenv": "^16.3.1",
+    "express": "^5.2.1",
+    "telegraf": "^4.16.3",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/uuid": "^9.0.7",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.3.3"
+  }
+}

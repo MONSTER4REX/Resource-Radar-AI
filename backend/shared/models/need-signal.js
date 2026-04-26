@@ -1,0 +1,1 @@
+﻿// NeedSignal schema and factory
