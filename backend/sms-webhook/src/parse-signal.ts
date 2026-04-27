@@ -27,7 +27,7 @@ export async function parseSignalWithGemini(
         console.error("No API key found!");
     }
     const genAI = new GoogleGenerativeAI(API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
     const prompt = `You are a humanitarian signal parser for ResourceRadar AI. 
 Parse the following message (which may be in Hindi, Hinglish, or English) 

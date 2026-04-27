@@ -1,8 +1,9 @@
-import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import '../models/need_signal.dart';
+import 'dart:typed_data';
 
 /// Handles signal writes to Firestore with offline persistence.
 /// Firestore SDK automatically queues writes when offline and syncs on reconnect.
@@ -42,7 +43,7 @@ class SignalService {
     return signal.signalId;
   }
 
-  /// Upload photo to Firebase Storage. Returns download URL.
+  /// Upload photo to Firebase Storage with compression. Returns download URL.
   Future<String?> _uploadPhoto(XFile file, String signalId) async {
     try {
       final ref = _storage
@@ -50,10 +51,29 @@ class SignalService {
           .child('signal_photos')
           .child('$signalId.jpg');
 
-      // Use putData for cross-platform support (Web requires bytes or Blob)
-      final bytes = await file.readAsBytes();
+      // 1. Read original bytes
+      final originalBytes = await file.readAsBytes();
+      
+      // 2. Compress image (target < 500KB as per roadmap)
+      Uint8List compressedBytes;
+      try {
+        final result = await FlutterImageCompress.compressWithList(
+          originalBytes,
+          minHeight: 1080,
+          minWidth: 1080,
+          quality: 85,
+          format: CompressFormat.jpeg,
+        );
+        compressedBytes = Uint8List.fromList(result);
+        print('DEBUG: Compressed image from ${originalBytes.length} to ${compressedBytes.length} bytes');
+      } catch (e) {
+        print('WARNING: Compression failed, using original bytes: $e');
+        compressedBytes = originalBytes;
+      }
+
+      // 3. Upload to Storage
       final uploadTask = await ref.putData(
-        bytes,
+        compressedBytes,
         SettableMetadata(contentType: 'image/jpeg'),
       );
 

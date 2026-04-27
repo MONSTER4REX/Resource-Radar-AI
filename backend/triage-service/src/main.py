@@ -14,11 +14,19 @@ logger.info(f"GOOGLE_API_KEY loaded: {'Yes' if os.getenv('GOOGLE_API_KEY') else 
 
 from fastapi import FastAPI, BackgroundTasks, HTTPException
 from pydantic import BaseModel
+import asyncio
 from triage_engine import triage_signal
 from firestore_sync import update_signal_triage
+from listener import start_triage_listener
 from typing import Optional, List
 
 app = FastAPI(title="ResourceRadar Triage Service")
+
+@app.on_event("startup")
+async def startup_event():
+    # Start the automated listener in the background
+    asyncio.create_task(start_triage_listener())
+    logger.info("Background triage listener started.")
 
 class TriageRequest(BaseModel):
     signal_id: str

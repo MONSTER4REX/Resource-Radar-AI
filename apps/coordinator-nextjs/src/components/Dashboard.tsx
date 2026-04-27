@@ -10,6 +10,8 @@ import StatsBar from "./StatsBar";
 import AISidebar from "./AISidebar";
 import { MapPin, Activity, Brain, Menu, X } from "lucide-react";
 
+import MapComponent from "./MapComponent";
+
 export default function Dashboard() {
   const [signals, setSignals] = useState<NeedSignal[]>([]);
   const [selectedSignal, setSelectedSignal] = useState<NeedSignal | null>(null);
@@ -24,7 +26,10 @@ export default function Dashboard() {
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map((doc) => doc.data() as NeedSignal);
+      const data = snapshot.docs.map((doc) => ({
+        ...doc.data(),
+        signal_id: doc.id,
+      } as NeedSignal));
       setSignals(data);
     });
 
@@ -78,35 +83,13 @@ export default function Dashboard() {
 
         {/* Content Area */}
         <div className="flex-1 flex overflow-hidden">
-          {/* Map Area — Placeholder since Maps SDK needs API key */}
-          <div className="flex-1 relative bg-slate-900/50 flex items-center justify-center">
-            <div className="text-center space-y-4">
-              <div className="w-20 h-20 mx-auto rounded-2xl bg-blue-500/10 flex items-center justify-center">
-                <MapPin size={32} className="text-blue-400" />
-              </div>
-              <div>
-                <p className="text-lg font-semibold text-slate-300">Interactive Map View</p>
-                <p className="text-sm text-slate-500 mt-1">
-                  Configure <code className="text-blue-400 bg-blue-400/10 px-1.5 py-0.5 rounded text-xs">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> to enable
-                </p>
-              </div>
-              {/* Signal Pins Preview */}
-              <div className="grid grid-cols-2 gap-3 max-w-xs mx-auto mt-6">
-                {signals.slice(0, 4).map((s) => (
-                  <button
-                    key={s.signal_id}
-                    onClick={() => { setSelectedSignal(s); setShowAI(true); }}
-                    className="glass-card p-3 text-left hover:border-blue-500/30 transition-all cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`w-2 h-2 rounded-full ${urgencyColor(s.urgency_tier)}`} />
-                      <span className="text-xs font-medium capitalize">{s.need_type}</span>
-                    </div>
-                    <p className="text-[11px] text-slate-500 truncate">{s.ward_id}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
+          {/* Map Area */}
+          <div className="flex-1 relative bg-slate-900/50">
+            <MapComponent 
+              signals={signals} 
+              selectedSignal={selectedSignal}
+              onSignalSelect={(s) => { setSelectedSignal(s); setShowAI(true); }}
+            />
           </div>
 
           {/* Signal List Panel */}

@@ -6,7 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'constants/app_theme.dart';
 import 'providers/signal_provider.dart';
 import 'firebase_options.dart';
-import 'screens/home_screen.dart';
+import 'widgets/auth_gate.dart';
 
 void main() async {
   try {
@@ -73,7 +73,7 @@ class ResourceRadarApp extends StatelessWidget {
           ),
           scaffoldBackgroundColor: AppColors.background,
         ),
-        home: const HomeScreen(),
+        home: const AuthGate(),
       ),
     );
   }

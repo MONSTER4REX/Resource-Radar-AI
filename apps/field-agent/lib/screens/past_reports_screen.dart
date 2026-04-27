@@ -136,7 +136,7 @@ class _SignalCard extends StatelessWidget {
     NeedType.medicine => LucideIcons.pill,
     NeedType.shelter => LucideIcons.house,
     NeedType.clothing => LucideIcons.shirt,
-    NeedType.other => LucideIcons.circleQuestionMark,
+    NeedType.other => LucideIcons.info,
   };
 
   String _needLabel(NeedType t) => t.name[0].toUpperCase() + t.name.substring(1);

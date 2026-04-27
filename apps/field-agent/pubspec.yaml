@@ -25,6 +25,7 @@ dependencies:
   flutter_image_compress: any
   path_provider: any
   uuid: any
+  local_auth: any
 
   # State Management
   provider: any

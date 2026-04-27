@@ -1,102 +1,72 @@
 # 🛰️ ResourceRadar AI
-> **Google Solution Challenge 2026** — Transforming humanitarian crisis response with real-time, AI-powered resource allocation.
+### Real-time Humanitarian Resource Allocation via Multimodal AI
 
-ResourceRadar AI is a comprehensive platform designed to bridge the gap between reported needs and available resources during humanitarian crises. By leveraging **Gemini 1.5 Pro**, **Google Cloud**, and **Flutter**, it provides a seamless ingestion pipeline for field data, automated intelligent triage, and optimized resource matching.
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Next.js](https://img.shields.io/badge/Dashboard-Next.js_14-black)](https://nextjs.org)
+[![Flutter](https://img.shields.io/badge/Apps-Flutter_3.x-02569B)](https://flutter.dev)
+[![Gemini](https://img.shields.io/badge/AI-Gemini_1.5_Flash-8E75B2)](https://deepmind.google/technologies/gemini/)
 
----
-
-## 🌟 Key Features
-
-- **🛡️ Multimodal AI Triage**: Integrated Gemini 1.5 Pro to verify and score reported needs using text, images, and geolocation data.
-- **📱 Field Agent App**: A robust Flutter mobile application optimized for low-connectivity environments with offline-first Firestore persistence.
-- **🏗️ Event-Driven Backend**: A scalable microservices architecture built with Node.js/TypeScript and Python, orchestrated via Google Cloud Pub/Sub.
-- **🛰️ Intelligent Normalization**: Automatic geocoding and data canonicalization using Google Maps Platform APIs.
-- **🤖 Autonomous Matching**: ANN-based resource matching to connect volunteer skills and NGO supplies to high-urgency zones.
-- **🚛 Optimized Routing**: Capacitated Vehicle Routing Problem (CVRP) solving using Google Routes Optimization API.
+**ResourceRadar AI** is a state-of-the-art humanitarian platform designed to bridge the "last-mile" gap in disaster response. By combining multimodal AI triage with vector-based volunteer matching, it ensures that help reaches those who need it most, in seconds, not hours.
 
 ---
 
-## 🛠️ Tech Stack
+## 🚀 Key Features
 
-### Frontend & Mobile
-- **Flutter**: Cross-platform mobile app for Field Agents.
-- **Next.js**: (Planned) Premium coordinator dashboard for real-time situational awareness.
-- **Lucide Icons**: Modern, consistent iconography across all interfaces.
+- **🧠 Multimodal Triage**: Automated verification of help requests using **Gemini 1.5 Flash**. Analyzes text (English/Hindi/Hinglish) and photos to confirm legitimacy and calculate urgency (0-100).
+- **⚡ Vector Matching Engine**: Uses **Vertex AI / ANN** to find the nearest, best-skilled volunteers for any given crisis.
+- **📱 Dual-App Ecosystem**:
+    - **Field Agent App**: Ultra-low-bandwidth reporting for victims and first responders.
+    - **Volunteer App**: Task-focused interface for responders with real-time mission routing.
+- **🗺️ Live Command Center**: A Next.js 14 dashboard for coordinators with interactive Google Maps integration and AI-driven insights.
 
-### Backend & AI
-- **Node.js (TypeScript)**: High-performance data ingestion (Normalizer, SMS Webhook).
-- **Python (FastAPI)**: AI-heavy services (Triage, Matching, Routing).
-- **Gemini 1.5 Pro/Flash**: Multimodal reasoning, parsing unstructured SMS, and risk assessment.
-- **Firebase**: Firestore (Real-time DB), Firebase Functions, and Auth.
+## 🏗️ Architecture
 
-### Infrastructure
-- **Google Cloud Platform**: Pub/Sub, Vertex AI, Maps Platform, Routes Optimization.
-- **Docker**: Containerized services for consistent deployment.
-
----
-
-## 📂 Project Structure
-
-```text
-├── apps/
-│   ├── field-agent/      # Flutter mobile application
-│   └── coordinator/      # (Planned) Next.js Dashboard
-├── backend/
-│   ├── normaliser/       # TS service for data cleaning & geocoding
-│   ├── triage-service/   # Python service for Gemini AI analysis
-│   ├── matching-service/ # Resource-to-need allocation engine
-│   └── routing-service/  # Fleet optimization using Routes API
-├── functions/            # Firebase Cloud Functions (Triggers)
-├── data/                 # Sample datasets and schemas
-├── docs/                 # PRD, Architecture diagrams, and API specs
-└── infra/                # Infrastructure-as-code (Terraform/Docker)
+```mermaid
+graph TD
+    A[Field Agent App] -->|Photo + Text| B(Firestore)
+    B -->|Trigger| C[Triage Service]
+    C -->|Gemini 1.5 Flash| D{Verification & Urgency}
+    D -->|Verified| E[Matching Service]
+    E -->|Vertex AI| F[Volunteer App]
+    F -->|Accept Mission| G[Mission Routing]
+    D -->|Insights| H[Coordinator Dashboard]
 ```
 
----
+## 📂 Repository Structure
 
-## 🚀 Getting Started
+- `apps/field-agent/`: Flutter app for reporting needs.
+- `apps/volunteer/`: Flutter app for responders.
+- `apps/coordinator-nextjs/`: Next.js 14 management dashboard.
+- `backend/triage-service/`: Python/Gemini service for signal analysis.
+- `backend/matching-service/`: Python service for volunteer allocation.
 
-### Prerequisites
-- Flutter SDK (3.x+)
-- Node.js (v20+)
-- Python (3.11+)
-- Google Cloud Project with Gemini API access
+## 🛠️ Quick Start
 
-### Configuration
-1. **Sanitize Environment**: Copy `.env.example` to `.env` in the respective service directories.
-2. **Firebase Setup**:
-   - Create a Firebase project.
-   - Update `apps/field-agent/lib/firebase_options.dart` with your actual credentials.
-3. **API Keys**:
-   - Enable **Gemini API** via Google AI Studio or Vertex AI.
-   - Enable **Maps JavaScript API**, **Geocoding API**, and **Routes Optimization API**.
+### 1. Prerequisites
+- Flutter SDK (3.16+)
+- Node.js (18+)
+- Python (3.10+)
+- Google Cloud Project with Gemini API & Maps SDK enabled.
 
----
+### 2. Environment Setup
+Copy `.env.example` to `.env` in the root directory and add your API keys:
+```bash
+GEMINI_API_KEY=your_key
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_key
+GOOGLE_CLOUD_PROJECT=your_project_id
+```
 
-## 📋 What's Left To Do (Roadmap)
+### 3. Run Locally
+```bash
+# Start Triage Service
+cd backend/triage-service && pip install -r requirements.txt && python src/listener.py
 
-### [Phase 2] Mobile & Data Collection
-- [ ] Implement **Full Image Compression** pipeline before upload.
-- [ ] Add **Biometric Auth** for Field Agent security.
+# Start Coordinator Dashboard
+cd apps/coordinator-nextjs && npm install && npm run dev
+```
 
-### [Phase 3] Matching & Routing Intelligence
-- [ ] Complete **ANN Implementation** in `matching-service` using Vertex AI.
-- [ ] Integrate **Real-time Traffic Data** into `routing-service`.
-
-### [Phase 4] Premium Coordinator Dashboard
-- [ ] Build **Next.js Dashboard** with interactive ward-level heatmaps.
-- [ ] Implement **AI Reasoning Sidebar** to show Gemini's triage logic.
-
-### [Phase 5] SMS & Analytics
-- [ ] finalize **Hinglish/Hindi SMS Parsing** using Gemini 1.5 Flash.
-- [ ] Build **Crisis Impact Reports** (PDF generation).
+## ⚖️ License
+Distributed under the **Apache License 2.0**. See `LICENSE` for more information.
 
 ---
-
-## 📄 License
-
-This project is licensed under the **Apache License 2.0**. See the [LICENSE](LICENSE) file for details.
-
----
-
-Developed for the **Google Solution Challenge 2026**.
+Built with ❤️ for humanity by [ResourceRadar Team]

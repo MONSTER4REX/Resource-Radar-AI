@@ -15,6 +15,10 @@ SYSTEM_PROMPT = """
 You are the AI Triage Engine for ResourceRadar AI, a humanitarian coordination platform.
 Your task is to analyze incoming need signals (text and optional photos) from the field and provide a structured assessment.
 
+LANGUAGE HANDLING:
+- You will receive inputs in English, Hindi (Devanagari), and Hinglish (Hindi written in Roman script, e.g., 'paani chahiye', 'khana nahi hai').
+- Standardize the meaning regardless of the language or script used.
+
 Criteria for Urgency Score (0-100):
 - Critical (80-100): Immediate life-safety risk (no water for 24h, medical emergency, active flooding).
 - High (60-79): Significant distress (large group without food, displaced families).
@@ -31,9 +35,11 @@ Output Format (Strict JSON):
     "urgency_tier": "critical" | "high" | "medium" | "low",
     "photo_matches_claim": bool | null,
     "verification_status": "verified" | "suspicious" | "needs_review",
-    "gemini_reasoning": "string (max 2 sentences)"
+    "gemini_reasoning": "string (max 2 sentences in English)"
 }
 """
+
+import httpx
 
 async def triage_signal(text: str, photo_url: Optional[str] = None) -> Dict[str, Any]:
     prompt = f"Analyze the following signal: {text}"
@@ -41,10 +47,21 @@ async def triage_signal(text: str, photo_url: Optional[str] = None) -> Dict[str,
     content = [SYSTEM_PROMPT, prompt]
     
     if photo_url:
-        # In a real implementation, we'd fetch the image from Cloud Storage
-        # and pass it to Gemini. For this demo, we'll assume text analysis first
-        # or handle image if provided as base64/bytes.
-        pass
+        try:
+            print(f"DEBUG: Fetching photo from {photo_url}...")
+            async with httpx.AsyncClient() as client:
+                response = await client.get(photo_url)
+                if response.status_code == 200:
+                    image_data = response.content
+                    content.append({
+                        "mime_type": "image/jpeg",
+                        "data": image_data
+                    })
+                    print("DEBUG: Photo added to content for Gemini.")
+                else:
+                    print(f"WARNING: Failed to fetch photo. Status: {response.status_code}")
+        except Exception as e:
+            print(f"ERROR: Exception while fetching photo: {e}")
 
     print(f"DEBUG: Calling Gemini API for signal triage...")
     # Use async version to avoid blocking the event loop
@@ -54,8 +71,12 @@ async def triage_signal(text: str, photo_url: Optional[str] = None) -> Dict[str,
         # Extract JSON from response
         text_response = response.text
         print(f"DEBUG: Gemini raw response: {text_response}")
+        
+        # Strip potential markdown formatting
         if "```json" in text_response:
             text_response = text_response.split("```json")[1].split("```")[0].strip()
+        elif "```" in text_response:
+            text_response = text_response.split("```")[1].split("```")[0].strip()
         
         parsed = json.loads(text_response)
         print(f"DEBUG: Parsed JSON: {parsed}")
