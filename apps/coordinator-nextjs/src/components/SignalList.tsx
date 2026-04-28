@@ -63,24 +63,24 @@ export default function SignalList({ signals, selected, onSelect }: Props) {
               
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`w-3 h-3 rounded-full shrink-0 ${urgencyDot(signal.urgency_tier)}`} />
-                  <span className="text-sm font-black text-white capitalize tracking-tight">{signal.need_type}</span>
+                  <div className={`w-3 h-3 rounded-full shrink-0 ${urgencyDot(signal.urgency_tier, signal.urgency_score)}`} />
+                  <span className="text-sm font-black text-white capitalize tracking-tight">{signal.need_type || "Unknown"}</span>
                 </div>
-                {signal.urgency_score && (
-                  <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg ${urgencyBadge(signal.urgency_tier)}`}>
-                    {signal.urgency_score}
+                {(signal.urgency_score !== undefined || signal.urgency_tier) && (
+                  <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg ${urgencyBadge(signal.urgency_tier, signal.urgency_score)}`}>
+                    {signal.urgency_score !== undefined ? signal.urgency_score : signal.urgency_tier?.toUpperCase() || "NEW"}
                   </span>
                 )}
               </div>
 
               <div className="mt-4 grid grid-cols-2 gap-4">
                 <div className="flex items-center gap-2 text-[11px] text-slate-400 font-bold">
-                  <MapPin size={13} className="text-slate-600" />
-                  <span className="truncate uppercase tracking-tight">{signal.ward_id}</span>
+                  <MapPin size={13} className="text-slate-600 shrink-0" />
+                  <span className="truncate uppercase tracking-tight">{signal.ward_id || "Unspecified"}</span>
                 </div>
                 <div className="flex items-center gap-2 text-[11px] text-slate-400 font-bold">
-                  <Users size={13} className="text-slate-600" />
-                  {signal.people_count} PEOPLE
+                  <Users size={13} className="text-slate-600 shrink-0" />
+                  <span className="truncate">{signal.people_count || "Unknown"} PEOPLE</span>
                 </div>
               </div>
 
@@ -103,8 +103,16 @@ export default function SignalList({ signals, selected, onSelect }: Props) {
   );
 }
 
-function urgencyDot(tier?: string): string {
-  switch (tier) {
+function urgencyDot(tier?: string, score?: number): string {
+  let effectiveTier = tier;
+  if ((!tier || tier === "pending") && score !== undefined) {
+    if (score >= 80) effectiveTier = "critical";
+    else if (score >= 60) effectiveTier = "high";
+    else if (score >= 40) effectiveTier = "medium";
+    else effectiveTier = "low";
+  }
+
+  switch (effectiveTier) {
     case "critical": return "bg-red-500 pulse-critical shadow-[0_0_12px_rgba(239,68,68,0.6)]";
     case "high": return "bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.4)]";
     case "medium": return "bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.4)]";
@@ -113,8 +121,16 @@ function urgencyDot(tier?: string): string {
   }
 }
 
-function urgencyBadge(tier?: string): string {
-  switch (tier) {
+function urgencyBadge(tier?: string, score?: number): string {
+  let effectiveTier = tier;
+  if ((!tier || tier === "pending") && score !== undefined) {
+    if (score >= 80) effectiveTier = "critical";
+    else if (score >= 60) effectiveTier = "high";
+    else if (score >= 40) effectiveTier = "medium";
+    else effectiveTier = "low";
+  }
+
+  switch (effectiveTier) {
     case "critical": return "bg-red-500/20 text-red-400 border border-red-500/20";
     case "high": return "bg-orange-500/20 text-orange-400 border border-orange-500/20";
     case "medium": return "bg-yellow-500/20 text-yellow-400 border border-yellow-500/20";

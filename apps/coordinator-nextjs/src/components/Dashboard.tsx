@@ -121,13 +121,13 @@ function PlaceholderView({ view }: { view: ActiveView }) {
       </div>
       <div>
         <h2 className="text-2xl font-black text-white mb-2 tracking-tight">{VIEW_LABELS[view]}</h2>
-        <p className="text-slate-400 text-sm max-w-sm leading-relaxed">
-          This section is under active development. Real-time {VIEW_LABELS[view].toLowerCase()} data will appear here once the backend integration is complete.
+        <p className="text-slate-300 text-sm max-w-sm leading-relaxed">
+          This section is part of the Phase 2 roadmap. Real-time {VIEW_LABELS[view].toLowerCase()} features will appear here in future updates.
         </p>
       </div>
-      <div className="flex gap-2 items-center px-4 py-2 rounded-xl border border-blue-500/20 bg-blue-500/5">
-        <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
-        <span className="text-[11px] font-black text-blue-400 uppercase tracking-widest">Connecting to backend…</span>
+      <div className="flex gap-2 items-center px-4 py-2 rounded-xl border border-emerald-500/20 bg-emerald-500/5">
+        <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+        <span className="text-[11px] font-black text-emerald-400 uppercase tracking-widest">Coming Soon</span>
       </div>
     </div>
   );

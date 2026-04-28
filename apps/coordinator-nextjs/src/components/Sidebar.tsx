@@ -46,6 +46,7 @@ export default function Sidebar({ open, onToggle, activeView, onViewChange }: Si
         duration: 0.5,
         ease: "power2.out",
         delay: 0.1,
+        clearProps: "all",
       });
     }
   }, [open]);
