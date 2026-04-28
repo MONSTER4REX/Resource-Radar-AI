@@ -80,13 +80,13 @@ class HistoryScreen extends StatelessWidget {
             IconButton(
               icon: const Icon(LucideIcons.layoutGrid, color: Colors.blueGrey),
               onPressed: () {
-                Navigator.pushReplacement(context, PageRouteBuilder(pageBuilder: (_, __, ___) => const MissionBoardScreen()));
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MissionBoardScreen()));
               },
             ),
             IconButton(
               icon: const Icon(LucideIcons.map, color: Colors.blueGrey),
               onPressed: () {
-                Navigator.pushReplacement(context, PageRouteBuilder(pageBuilder: (_, __, ___) => const GlobalMapScreen()));
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const GlobalMapScreen()));
               },
             ),
             IconButton(
@@ -96,7 +96,7 @@ class HistoryScreen extends StatelessWidget {
             IconButton(
               icon: const Icon(LucideIcons.settings, color: Colors.blueGrey),
               onPressed: () {
-                Navigator.pushReplacement(context, PageRouteBuilder(pageBuilder: (_, __, ___) => const SettingsScreen()));
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
               },
             ),
           ],

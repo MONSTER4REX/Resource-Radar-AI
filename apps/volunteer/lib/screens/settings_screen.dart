@@ -65,7 +65,7 @@ class SettingsScreen extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(LucideIcons.circleHelp, color: Colors.white70),
+            leading: const Icon(LucideIcons.info, color: Colors.white70),
             title: const Text('Help & Support', style: TextStyle(color: Colors.white)),
             trailing: const Icon(LucideIcons.chevronRight, color: Colors.white70),
             onTap: () {
@@ -116,19 +116,19 @@ class SettingsScreen extends StatelessWidget {
             IconButton(
               icon: const Icon(LucideIcons.layoutGrid, color: Colors.blueGrey),
               onPressed: () {
-                Navigator.pushReplacement(context, PageRouteBuilder(pageBuilder: (_, __, ___) => const MissionBoardScreen()));
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MissionBoardScreen()));
               },
             ),
             IconButton(
               icon: const Icon(LucideIcons.map, color: Colors.blueGrey),
               onPressed: () {
-                Navigator.pushReplacement(context, PageRouteBuilder(pageBuilder: (_, __, ___) => const GlobalMapScreen()));
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const GlobalMapScreen()));
               },
             ),
             IconButton(
               icon: const Icon(LucideIcons.history, color: Colors.blueGrey),
               onPressed: () {
-                Navigator.pushReplacement(context, PageRouteBuilder(pageBuilder: (_, __, ___) => const HistoryScreen()));
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HistoryScreen()));
               },
             ),
             IconButton(

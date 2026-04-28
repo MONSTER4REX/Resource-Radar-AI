@@ -74,7 +74,7 @@ class _GlobalMapScreenState extends State<GlobalMapScreen> {
             IconButton(
               icon: const Icon(LucideIcons.layoutGrid, color: Colors.blueGrey),
               onPressed: () {
-                Navigator.pushReplacement(context, PageRouteBuilder(pageBuilder: (_, __, ___) => const MissionBoardScreen()));
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MissionBoardScreen()));
               },
             ),
             IconButton(
@@ -84,13 +84,13 @@ class _GlobalMapScreenState extends State<GlobalMapScreen> {
             IconButton(
               icon: const Icon(LucideIcons.history, color: Colors.blueGrey),
               onPressed: () {
-                Navigator.pushReplacement(context, PageRouteBuilder(pageBuilder: (_, __, ___) => const HistoryScreen()));
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HistoryScreen()));
               },
             ),
             IconButton(
               icon: const Icon(LucideIcons.settings, color: Colors.blueGrey),
               onPressed: () {
-                Navigator.pushReplacement(context, PageRouteBuilder(pageBuilder: (_, __, ___) => const SettingsScreen()));
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
               },
             ),
           ],

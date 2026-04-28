@@ -3,6 +3,9 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'active_task_screen.dart';
+import 'settings_screen.dart';
+import 'global_map_screen.dart';
+import 'history_screen.dart';
 
 class MissionBoardScreen extends StatefulWidget {
   const MissionBoardScreen({super.key});
@@ -101,7 +104,7 @@ class _MissionBoardScreenState extends State<MissionBoardScreen> {
             child: InkWell(
               borderRadius: BorderRadius.circular(16),
               onTap: () {
-                Navigator.pushReplacement(context, PageRouteBuilder(pageBuilder: (_, __, ___) => const SettingsScreen()));
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
               },
               child: const CircleAvatar(
                 radius: 16,
@@ -489,19 +492,19 @@ class _MissionBoardScreenState extends State<MissionBoardScreen> {
           IconButton(
             icon: const Icon(LucideIcons.map, color: Colors.blueGrey),
             onPressed: () {
-              Navigator.pushReplacement(context, PageRouteBuilder(pageBuilder: (_, __, ___) => const GlobalMapScreen()));
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const GlobalMapScreen()));
             },
           ),
           IconButton(
             icon: const Icon(LucideIcons.history, color: Colors.blueGrey),
             onPressed: () {
-              Navigator.pushReplacement(context, PageRouteBuilder(pageBuilder: (_, __, ___) => const HistoryScreen()));
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HistoryScreen()));
             },
           ),
           IconButton(
             icon: const Icon(LucideIcons.settings, color: Colors.blueGrey),
             onPressed: () {
-              Navigator.pushReplacement(context, PageRouteBuilder(pageBuilder: (_, __, ___) => const SettingsScreen()));
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
             },
           ),
         ],

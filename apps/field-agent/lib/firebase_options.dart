@@ -47,9 +47,9 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'YOUR_WEB_API_KEY',
-    appId: 'YOUR_WEB_APP_ID',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
+    apiKey: 'AIzaSyDvEwDKL1mWv6IAhmvGXMN9_zeK6mVYeqs',
+    appId: '1:1039116498343:web:d8fb3cc352a8d0aefcb282',
+    messagingSenderId: '1039116498343',
     projectId: 'resource-radar-ai',
     authDomain: 'resource-radar-ai.firebaseapp.com',
     storageBucket: 'resource-radar-ai.firebasestorage.app',
@@ -57,17 +57,17 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'YOUR_ANDROID_API_KEY',
-    appId: 'YOUR_ANDROID_APP_ID',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
+    apiKey: 'AIzaSyAUdtRr1sCN501zHWurWf0z1xv5ntVKM6o',
+    appId: '1:1039116498343:android:52588a01a250edccfcb282',
+    messagingSenderId: '1039116498343',
     projectId: 'resource-radar-ai',
     storageBucket: 'resource-radar-ai.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'YOUR_IOS_API_KEY',
-    appId: 'YOUR_IOS_APP_ID',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
+    apiKey: 'AIzaSyDqfYVCVdtp500N4YQGcfU1HqqeIHCV6x0',
+    appId: '1:1039116498343:ios:26829185f9a18989fcb282',
+    messagingSenderId: '1039116498343',
     projectId: 'resource-radar-ai',
     storageBucket: 'resource-radar-ai.firebasestorage.app',
     iosBundleId: 'com.resourceradar.fieldAgent',

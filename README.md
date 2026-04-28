@@ -12,12 +12,15 @@
 
 ## 🚀 Key Features
 
-- **🧠 Multimodal Triage**: Automated verification of help requests using **Gemini 1.5 Flash**. Analyzes text (English/Hindi/Hinglish) and photos to confirm legitimacy and calculate urgency (0-100).
-- **⚡ Vector Matching Engine**: Uses **Vertex AI / ANN** to find the nearest, best-skilled volunteers for any given crisis.
-- **📱 Dual-App Ecosystem**:
-    - **Field Agent App**: Ultra-low-bandwidth reporting for victims and first responders.
-    - **Volunteer App**: Task-focused interface for responders with real-time mission routing.
-- **🗺️ Live Command Center**: A Next.js 14 dashboard for coordinators with interactive Google Maps integration and AI-driven insights.
+- **🧠 Multimodal AI Triage**: Automated verification of help requests using **Google Gemini 1.5 Pro**. Analyzes text (English/Hindi/Hinglish) and photos to confirm legitimacy, calculate urgency (0-100), and categorize the incident type.
+- **⚡ Intelligent Volunteer Matching**: AI-driven vector semantic matching that automatically routes the closest, best-equipped volunteers to specific crises based on skills and assets, instead of a traditional first-come-first-serve model.
+- **📱 Dual-App Ecosystem (Mobile)**:
+    - **Field Agent App**: Flutter-based, ultra-low-bandwidth reporting tool for trusted first responders with offline-first data capture support.
+    - **Volunteer App**: Task-focused Flutter interface for responders with real-time mission routing and a global needs map.
+- **🗺️ Coordinator Dashboard (Web)**: Real-time Next.js command center with live signal feeds, interactive maps, and AI analysis breakdowns for incident commanders.
+- **🤖 Zero-Friction Chatbot Access**: Telegram and SMS integrations allowing victims to report emergencies instantly without downloading an app in low-bandwidth zones.
+- **🕵️ Automated Duplicate Detection**: Gemini vision models cross-reference incoming photos to automatically cluster redundant reports and flag suspicious claims, preventing wasted resources.
+- **📡 Real-time Event Backend**: Firebase Firestore synced with event-driven processors and location intelligence for automatic geocoding and map plotting of critical signals.
 
 ## 🏗️ Architecture
 
