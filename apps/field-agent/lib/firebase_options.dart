@@ -47,7 +47,7 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDvEwDKL1mWv6IAhmvGXMN9_zeK6mVYeqs',
+    apiKey: 'Your-api-key',
     appId: '1:1039116498343:web:d8fb3cc352a8d0aefcb282',
     messagingSenderId: '1039116498343',
     projectId: 'resource-radar-ai',
@@ -57,7 +57,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAUdtRr1sCN501zHWurWf0z1xv5ntVKM6o',
+    apiKey: 'Your-api-key',
     appId: '1:1039116498343:android:52588a01a250edccfcb282',
     messagingSenderId: '1039116498343',
     projectId: 'resource-radar-ai',
@@ -65,7 +65,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDqfYVCVdtp500N4YQGcfU1HqqeIHCV6x0',
+    apiKey: 'Your-api-key',
     appId: '1:1039116498343:ios:26829185f9a18989fcb282',
     messagingSenderId: '1039116498343',
     projectId: 'resource-radar-ai',
