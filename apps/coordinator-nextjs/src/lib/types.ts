@@ -26,4 +26,5 @@ export interface NeedSignal {
   created_at: { seconds: number; nanoseconds: number };
   triaged_at?: { seconds: number; nanoseconds: number };
   ngo_id: string;
+  source?: string;
 }

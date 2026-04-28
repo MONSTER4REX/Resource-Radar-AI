@@ -1,6 +1,7 @@
 "use client";
 
-import { MapPin, Radio, Users, BarChart3, Settings, Shield } from "lucide-react";
+import { MapPin, Radio, Users, BarChart3, Settings, Shield, LogOut } from "lucide-react";
+import { useAuth } from "./auth/AuthContext";
 
 interface SidebarProps {
   open: boolean;
@@ -17,6 +18,8 @@ const navItems = [
 ];
 
 export default function Sidebar({ open }: SidebarProps) {
+  const { user, logout } = useAuth();
+  
   if (!open) return null;
 
   return (
@@ -49,13 +52,31 @@ export default function Sidebar({ open }: SidebarProps) {
         ))}
       </nav>
 
-      {/* Footer */}
-      <div className="p-4 border-t border-white/5">
-        <div className="glass-card p-3">
+      {/* User Section */}
+      <div className="p-4 border-t border-white/5 space-y-3">
+        {user && (
+          <div className="flex items-center gap-3 px-2">
+            <img src={user.photoURL || ""} alt="" className="w-8 h-8 rounded-full border border-white/10" />
+            <div className="min-w-0">
+              <p className="text-xs font-medium truncate">{user.displayName}</p>
+              <p className="text-[10px] text-slate-500 truncate">{user.email}</p>
+            </div>
+          </div>
+        )}
+        
+        <button 
+          onClick={logout}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-slate-400 hover:text-red-400 hover:bg-red-500/5 transition-all"
+        >
+          <LogOut size={18} />
+          Sign Out
+        </button>
+
+        <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-3">
           <p className="text-xs text-slate-400">Powered by</p>
           <p className="text-sm font-semibold mt-0.5">Gemini 1.5 Pro</p>
           <div className="flex items-center gap-1.5 mt-2">
-            <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full" />
+            <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
             <span className="text-[11px] text-emerald-400">AI Engine Online</span>
           </div>
         </div>

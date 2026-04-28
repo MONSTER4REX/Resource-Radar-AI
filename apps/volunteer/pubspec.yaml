@@ -10,12 +10,15 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.6
-  firebase_core: ^2.24.2
-  cloud_firestore: ^4.14.0
-  firebase_auth: ^4.15.3
+  firebase_core: ^3.10.1
+  cloud_firestore: ^5.6.3
+  firebase_auth: ^5.4.1
   lucide_icons_flutter: ^3.1.13
   google_fonts: ^6.1.0
-  geolocator: ^10.1.0
+  geolocator: ^13.0.1
+  google_maps_flutter: ^2.10.0
+  url_launcher: ^6.3.2
+  google_sign_in: ^7.2.0
 
 dev_dependencies:
   flutter_test:

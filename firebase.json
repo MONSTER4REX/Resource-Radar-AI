@@ -1,5 +1,11 @@
 {
   "firestore": {
     "indexes": "firestore.indexes.json"
+  },
+  "auth": {
+    "providers": {
+      "anonymous": true,
+      "emailPassword": true
+    }
   }
 }

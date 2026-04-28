@@ -27,13 +27,21 @@ async def update_signal_matches(signal_id: str, volunteer_ids: List[str]) -> Non
 
 
 async def get_volunteer_profiles(volunteer_ids: List[str]) -> List[Dict[str, Any]]:
-    """Fetch volunteer profiles from Firestore."""
+    """Fetch multiple volunteer profiles from Firestore."""
     profiles = []
     for vid in volunteer_ids:
-        doc_ref = db.collection(_VOLUNTEERS_COLLECTION).document(vid)
-        doc = await doc_ref.get()
-        if doc.exists:
-            data = doc.to_dict()
-            data["volunteer_id"] = vid
-            profiles.append(data)
+        doc = await get_volunteer_profile(vid)
+        if doc:
+            profiles.append(doc)
     return profiles
+
+
+async def get_volunteer_profile(volunteer_id: str) -> Optional[Dict[str, Any]]:
+    """Fetch a single volunteer profile from Firestore."""
+    doc_ref = db.collection(_VOLUNTEERS_COLLECTION).document(volunteer_id)
+    doc = await doc_ref.get()
+    if doc.exists:
+        data = doc.to_dict()
+        data["volunteer_id"] = volunteer_id
+        return data
+    return None

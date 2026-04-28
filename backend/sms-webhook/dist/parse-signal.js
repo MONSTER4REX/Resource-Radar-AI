@@ -1,35 +1,15 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-
-export interface ParsedSignal {
-    is_valid_signal: boolean;
-    need_type: string;
-    ward_id: string;
-    city_id: string;
-    people_count: number;
-    urgency_raw: number;
-    original_text: string;
-    language_detected: string;
-    latitude?: number;
-    longitude?: number;
-}
-
 /**
  * Parse an unstructured signal (Hindi, Hinglish, or English) into a structured
  * need signal using Gemini 1.5 Flash.
  */
-export async function parseSignalWithGemini(
-    text: string,
-    senderId: string,
-    location?: { lat: number; lng: number },
-    base64Image?: string
-): Promise<ParsedSignal> {
+export async function parseSignalWithGemini(text, senderId, location, base64Image) {
     const API_KEY = process.env.GEMINI_API_KEY || '';
     if (!API_KEY) {
         console.error("No API key found!");
     }
     const genAI = new GoogleGenerativeAI(API_KEY);
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-
     const prompt = `You are a humanitarian signal parser for ResourceRadar AI. 
 Parse the following message (which may be in Hindi, Hinglish, or English) 
 into a structured need signal.
@@ -50,10 +30,8 @@ Extract the following fields. If a field cannot be determined, use the default v
 7. language_detected (string): The language (hindi, hinglish, english, etc.)
 
 Respond ONLY with a valid JSON object matching the schema above. No markdown, no explanation.`;
-
     try {
-        const parts: any[] = [{ text: prompt }];
-        
+        const parts = [{ text: prompt }];
         if (base64Image) {
             parts.push({
                 inlineData: {
@@ -62,26 +40,22 @@ Respond ONLY with a valid JSON object matching the schema above. No markdown, no
                 }
             });
         }
-
         const result = await model.generateContent(parts);
         const responseText = result.response.text() || '{}';
-        
         console.log('Gemini raw response:', responseText);
-
         const cleaned = responseText
             .replace(/```json\n?/g, '')
             .replace(/```\n?/g, '')
             .trim();
-
         const parsed = JSON.parse(cleaned);
-
         return {
             ...parsed,
             original_text: text,
             latitude: location?.lat,
             longitude: location?.lng,
         };
-    } catch (error) {
+    }
+    catch (error) {
         console.error('Gemini parse error:', error);
         return {
             is_valid_signal: false,
@@ -97,3 +71,4 @@ Respond ONLY with a valid JSON object matching the schema above. No markdown, no
         };
     }
 }
+//# sourceMappingURL=parse-signal.js.map

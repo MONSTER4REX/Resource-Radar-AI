@@ -45,6 +45,7 @@ firestore.rules
 storage.rules
 functions/node_modules/
 service-account.json
+firebase_options.dart
 
 # Python
 __pycache__/

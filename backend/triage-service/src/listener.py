@@ -20,41 +20,37 @@ async def start_triage_listener():
     # Query for pending signals
     query = signals_ref.where("verification_status", "==", "pending")
     
-    logger.info("Starting Firestore Triage Listener...")
+    logger.info("Starting Firestore Triage Listener (Polling Mode)...")
     
-    # In a real production environment, we'd use a watch/snapshot listener.
-    # For this service, we'll poll or use the watch API if supported by the client.
-    # The python-firestore async client supports watch() starting in recent versions.
-    
-    def on_snapshot(col_snapshot, changes, read_time):
-        for change in changes:
-            if change.type.name == 'ADDED' or change.type.name == 'MODIFIED':
-                doc = change.document
-                data = doc.to_dict()
-                if data.get("verification_status") == "pending":
-                    signal_id = doc.id
-                    text = data.get("notes", "")
-                    photo_url = data.get("photo_url")
-                    
-                    logger.info(f"Detected new pending signal: {signal_id}")
-                    # Schedule triage in the background
-                    asyncio.create_task(run_triage_and_update(signal_id, text, photo_url))
+    # Track processed signals to avoid redundant work in the same session
+    processed_signals = set()
 
-    # Note: AsyncClient.collection(...).on_snapshot is not directly available in some 
-    # versions of the library, so we'll use a polling loop for reliability in this demo.
     while True:
         try:
+            # Query for pending signals
             docs = await query.get()
+            
+            tasks = []
             for doc in docs:
-                data = doc.to_dict()
                 signal_id = doc.id
+                if signal_id in processed_signals:
+                    continue
+                    
+                data = doc.to_dict()
                 text = data.get("notes", "")
                 photo_url = data.get("photo_url")
                 
-                logger.info(f"Processing pending signal: {signal_id}")
-                await run_triage_and_update(signal_id, text, photo_url)
-                
-            await asyncio.sleep(10) # Poll every 10 seconds
+                logger.info(f"Processing new pending signal: {signal_id}")
+                # Add to set before processing to avoid race conditions with polling
+                processed_signals.add(signal_id)
+                tasks.append(asyncio.create_task(run_triage_and_update(signal_id, text, photo_url)))
+            
+            if tasks:
+                await asyncio.gather(*tasks, return_exceptions=True)
+                # After gather, if we want to clear them from memory or set to 'triaged' in DB
+                # the run_triage_and_update logic handles the status update in Firestore.
+            
+            await asyncio.sleep(5) # Poll more frequently (5s) for responsive feel
         except Exception as e:
             logger.error(f"Listener error: {e}")
             await asyncio.sleep(10)

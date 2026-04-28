@@ -8,10 +8,10 @@ if not load_dotenv():
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
-from embed_task import generate_task_embedding
-from matching_engine import find_nearest_volunteers
+from embed_task import generate_task_embedding, generate_volunteer_embedding
+from matching_engine import find_nearest_volunteers, upsert_volunteer_embedding
 from distance_filter import filter_by_distance
-from firestore_sync import get_signal, update_signal_matches, get_volunteer_profiles
+from firestore_sync import get_signal, update_signal_matches, get_volunteer_profiles, get_volunteer_profile
 
 app = FastAPI(title="ResourceRadar Matching Service")
 
@@ -61,13 +61,14 @@ async def match_volunteers(request: MatchRequest):
     embedding = await generate_task_embedding(task_text)
 
     # 3. Find nearest volunteers via Matching Engine
+    signal_location = signal.get("location", {})
     candidates = await find_nearest_volunteers(
         query_embedding=embedding,
         num_neighbors=request.max_results * 3,  # Over-fetch for distance filtering
+        task_location=signal_location,
     )
 
     # 4. Filter by distance
-    signal_location = signal.get("location", {})
     filtered = filter_by_distance(
         candidates=candidates,
         signal_lat=signal_location.get("latitude", 0),
@@ -77,17 +78,50 @@ async def match_volunteers(request: MatchRequest):
 
     # 5. Rank and limit
     ranked = sorted(filtered, key=lambda v: v["match_score"], reverse=True)
-    top_matches = ranked[: request.max_results]
+    top_matches_data = ranked[: request.max_results]
 
-    # 6. Update Firestore
-    volunteer_ids = [m["volunteer_id"] for m in top_matches]
-    await update_signal_matches(request.signal_id, volunteer_ids)
+    # 6. Enrich with Profile Data
+    volunteer_ids = [m["volunteer_id"] for m in top_matches_data]
+    profiles = await get_volunteer_profiles(volunteer_ids)
+    
+    # Map profiles to matches
+    enriched_matches = []
+    for m in top_matches_data:
+        profile = next((p for p in profiles if p["volunteer_id"] == m["volunteer_id"]), {})
+        enriched_matches.append({
+            **m,
+            "display_name": profile.get("display_name", profile.get("display_name", "Anonymous Volunteer")),
+            "skills": profile.get("skills", []),
+        })
+
+    # 7. Update Firestore (Optional/Pending Confirmation)
+    # await update_signal_matches(request.signal_id, [m["volunteer_id"] for m in enriched_matches[:1]])
 
     return MatchResponse(
         signal_id=request.signal_id,
-        matches=[VolunteerMatch(**m) for m in top_matches],
+        matches=[VolunteerMatch(**m) for m in enriched_matches],
         total_candidates=len(candidates),
     )
+
+
+class SyncRequest(BaseModel):
+    volunteer_id: str
+
+
+@app.post("/sync-volunteer")
+async def sync_volunteer(request: SyncRequest):
+    """
+    Sync a specific volunteer's profile to the Vector Search index.
+    Called when a volunteer registers or updates their profile.
+    """
+    profile = await get_volunteer_profile(request.volunteer_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="Volunteer not found")
+
+    embedding = await generate_volunteer_embedding(profile)
+    await upsert_volunteer_embedding(request.volunteer_id, embedding)
+
+    return {"status": "success", "volunteer_id": request.volunteer_id}
 
 
 def _build_task_description(signal: dict) -> str:

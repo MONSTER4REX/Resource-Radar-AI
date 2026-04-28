@@ -3,85 +3,70 @@ import express from 'express';
 import dotenv from 'dotenv';
 import { parseSignalWithGemini } from './parse-signal.js';
 import { publishToIngestion } from './publish.js';
-
 dotenv.config();
-
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 if (!BOT_TOKEN) {
     console.error('ERROR: TELEGRAM_BOT_TOKEN is missing in .env');
     process.exit(1);
 }
 console.log(`Token loaded: ${BOT_TOKEN.substring(0, 5)}...`);
-
 const bot = new Telegraf(BOT_TOKEN);
 const app = express();
 const PORT = process.env.PORT || 8003;
-
 // --- Health Check ---
 app.get('/health', (_req, res) => {
     res.json({ status: 'ok', service: 'telegram-signal-bot' });
 });
-
 // --- Dispatcher Endpoint ---
 app.post('/notify-volunteer', express.json(), async (req, res) => {
     const { volunteer_tg_id, message } = req.body;
-    
     if (!volunteer_tg_id || !message) {
         return res.status(400).json({ error: 'Missing volunteer_tg_id or message' });
     }
-
     try {
         // Extract numeric ID if prefixed with tg_
         const numericId = volunteer_tg_id.replace('tg_', '');
         await bot.telegram.sendMessage(numericId, message);
         console.log(`Successfully notified volunteer ${volunteer_tg_id}`);
         res.json({ status: 'sent' });
-    } catch (error) {
+    }
+    catch (error) {
         console.error(`Failed to notify volunteer ${volunteer_tg_id}:`, error);
         res.status(500).json({ error: 'Failed to send Telegram message' });
     }
 });
-
 // --- Bot Logic ---
-
 // Start command
 bot.command('start', (ctx) => {
-    ctx.reply(
-        'Welcome to ResourceRadar AI Signal Bot. 🆘\n\n' +
+    ctx.reply('Welcome to ResourceRadar AI Signal Bot. 🆘\n\n' +
         'Please report any humanitarian needs by sending a message describing:\n' +
         '1. What is needed (food, water, etc.)\n' +
         '2. Where it is needed (Area/Ward)\n' +
         '3. How many people are affected\n\n' +
-        '📍 Tip: You can also share your current location for faster response!'
-    );
+        '📍 Tip: You can also share your current location for faster response!');
 });
-
 // Handle text messages
 bot.on('text', async (ctx) => {
     const text = ctx.message.text;
     const senderId = `tg_${ctx.from.id}`;
-    
     console.log(`Telegram message from ${ctx.from.username || senderId}: "${text}"`);
-    
     try {
         const parsed = await parseSignalWithGemini(text, senderId);
         await processAndPublish(ctx, parsed, senderId);
-    } catch (error) {
+    }
+    catch (error) {
         console.error('Error processing Telegram text:', error);
         await ctx.reply('Sorry, I had trouble processing that report. Please try again later.');
     }
 });
-
 // Handle photos
 bot.on('photo', async (ctx) => {
     const photo = ctx.message.photo.pop(); // Get largest size
-    if (!photo) return;
-
+    if (!photo)
+        return;
     const senderId = `tg_${ctx.from.id}`;
     const caption = ctx.message.caption || "";
-    
     console.log(`Telegram photo from ${senderId} with caption: "${caption}"`);
-    
     try {
         // 1. Get file link
         const fileLink = await ctx.telegram.getFileLink(photo.file_id);
@@ -89,29 +74,25 @@ bot.on('photo', async (ctx) => {
         const arrayBuffer = await response.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
         const base64 = buffer.toString('base64');
-
         // 2. Parse with Gemini (Multimodal)
         const parsed = await parseSignalWithGemini(caption || "Disaster report with photo", senderId, undefined, base64);
-        
         // 3. Process and Publish
         // Note: In production, we'd upload the buffer to Firebase Storage to get a persistent URL
         await processAndPublish(ctx, parsed, senderId);
-
-    } catch (error) {
+    }
+    catch (error) {
         console.error('Error processing Telegram photo:', error);
         await ctx.reply('Failed to process your photo. Please try sending just text if this persists.');
     }
 });
-
 /**
  * Shared logic to publish parsed signal and reply to user
  */
-async function processAndPublish(ctx: any, parsed: any, senderId: string) {
+async function processAndPublish(ctx, parsed, senderId) {
     if (!parsed.is_valid_signal) {
         await ctx.reply('Thank you. We received your message but couldn\'t identify a specific need signal. Please try to include: what is needed, where, and for how many people.');
         return;
     }
-
     await publishToIngestion({
         ward_id: parsed.ward_id,
         city_id: parsed.city_id || 'default_city',
@@ -123,24 +104,18 @@ async function processAndPublish(ctx: any, parsed: any, senderId: string) {
         reporter_role: 'community_member',
         source_channel: 'telegram',
     });
-
-    await ctx.reply(
-        `✅ Signal Logged!\n\n` +
+    await ctx.reply(`✅ Signal Logged!\n\n` +
         `Type: ${parsed.need_type}\n` +
         `Location: ${parsed.ward_id}\n` +
         `People: ~${parsed.people_count}\n` +
         `Urgency: ${parsed.urgency_raw}/5\n\n` +
-        `Help is on the way!`
-    );
+        `Help is on the way!`);
 }
-
 // Handle location messages
 bot.on('location', async (ctx) => {
     const { latitude, longitude } = ctx.message.location;
     const senderId = `tg_${ctx.from.id}`;
-    
     console.log(`Location pin from ${senderId}: ${latitude}, ${longitude}`);
-    
     try {
         // For locations, we create a specialized signal
         await publishToIngestion({
@@ -156,28 +131,24 @@ bot.on('location', async (ctx) => {
             latitude,
             longitude,
         });
-
         await ctx.reply('📍 GPS Location received! Please now send a text message describing what is needed at this location.');
-    } catch (error) {
+    }
+    catch (error) {
         console.error('Error processing Telegram location:', error);
     }
 });
-
 // --- Startup ---
-
 app.listen(PORT, () => {
     console.log(`Health check server listening on port ${PORT}`);
 });
-
 console.log('📡 Connecting to Telegram...');
 bot.launch().then(() => {
     console.log('🚀 Telegram Signal Bot is running!');
 }).catch((err) => {
     console.error('❌ Failed to launch Telegram Bot:', err);
 });
-
 // Enable graceful stop
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
-
 export default app;
+//# sourceMappingURL=index.js.map

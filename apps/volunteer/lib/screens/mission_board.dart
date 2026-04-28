@@ -1,10 +1,67 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'active_task_screen.dart';
 
-class MissionBoardScreen extends StatelessWidget {
+class MissionBoardScreen extends StatefulWidget {
   const MissionBoardScreen({super.key});
 
   @override
+  State<MissionBoardScreen> createState() => _MissionBoardScreenState();
+}
+
+class _MissionBoardScreenState extends State<MissionBoardScreen> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  String get _currentUserId => FirebaseAuth.instance.currentUser?.uid ?? 'vol_mock_1';
+  bool _isOnline = true;
+  int _completedMissionsCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchImpactStats();
+  }
+
+  void _fetchImpactStats() {
+    _firestore
+        .collection('need_signals')
+        .where('assigned_volunteers', arrayContains: _currentUserId)
+        .snapshots()
+        .listen((snapshot) {
+      if (mounted) {
+        final completed = snapshot.docs.where((d) {
+          final data = d.data();
+          return data['status'] == 'completed';
+        }).length;
+        setState(() {
+          _completedMissionsCount = completed;
+        });
+      }
+    });
+
+    _firestore
+        .collection('volunteers')
+        .doc(_currentUserId)
+        .snapshots()
+        .listen((snapshot) {
+      if (mounted && snapshot.exists) {
+        final data = snapshot.data();
+        if (data != null && data.containsKey('status')) {
+          setState(() {
+            _isOnline = data['status'] == 'active';
+          });
+        }
+      }
+    });
+  }
+
+  void _toggleOnline(bool val) {
+    setState(() => _isOnline = val);
+    _firestore.collection('volunteers').doc(_currentUserId).set({
+      'status': val ? 'active' : 'offline',
+    }, SetOptions(merge: true));
+  }
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A),
@@ -17,52 +74,179 @@ class MissionBoardScreen extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            icon: const Icon(LucideIcons.bell, color: Colors.blueGrey),
-            onPressed: () {},
+            icon: const Icon(LucideIcons.bell, color: Colors.white),
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                backgroundColor: const Color(0xFF1E293B),
+                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+                builder: (context) => Container(
+                  padding: const EdgeInsets.all(24),
+                  height: 300,
+                  child: Column(
+                    children: [
+                      const Text('Notifications', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 32),
+                      Icon(LucideIcons.bellOff, size: 48, color: Colors.blueGrey.withOpacity(0.5)),
+                      const SizedBox(height: 16),
+                      const Text('No new notifications', style: TextStyle(color: Colors.blueGrey)),
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
-          const CircleAvatar(
-            radius: 16,
-            backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=vol1'),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () {
+                Navigator.pushReplacement(context, PageRouteBuilder(pageBuilder: (_, __, ___) => const SettingsScreen()));
+              },
+              child: const CircleAvatar(
+                radius: 16,
+                backgroundColor: Colors.blueAccent,
+                child: Icon(LucideIcons.user, size: 18, color: Colors.white),
+              ),
+            ),
           ),
-          const SizedBox(width: 16),
         ],
       ),
       body: Column(
         children: [
           _buildStatusBanner(),
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                _buildSectionHeader('Nearby Missions', 'Matched to your skills'),
-                const SizedBox(height: 16),
-                _buildMissionCard(
-                  title: 'Medical Supplies Delivery',
-                  distance: '1.2 km away',
-                  urgency: 'Critical',
-                  time: 'Requested 10m ago',
-                  icon: LucideIcons.stethoscope,
-                  color: Colors.redAccent,
-                ),
-                const SizedBox(height: 16),
-                _buildMissionCard(
-                  title: 'Food Distribution Assist',
-                  distance: '0.8 km away',
-                  urgency: 'High',
-                  time: 'Requested 25m ago',
-                  icon: LucideIcons.utensils,
-                  color: Colors.orangeAccent,
-                ),
-                const SizedBox(height: 32),
-                _buildSectionHeader('Your Impact', 'Weekly summary'),
-                const SizedBox(height: 16),
-                _buildImpactStats(),
-              ],
+            child: StreamBuilder<QuerySnapshot>(
+              stream: _firestore
+                  .collection('need_signals')
+                  .where('status', whereIn: ['active', 'assigned'])
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}', style: const TextStyle(color: Colors.white)));
+                }
+
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator(color: Colors.blueAccent));
+                }
+
+                final allDocs = snapshot.data?.docs ?? [];
+                
+                final myAssignedDocs = allDocs.where((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  final isAssigned = data['status'] == 'assigned';
+                  final volunteers = data['assigned_volunteers'] as List?;
+                  return isAssigned && volunteers != null && volunteers.contains(_currentUserId);
+                }).toList();
+
+                final nearbyActiveDocs = allDocs.where((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  return data['status'] == 'active';
+                }).toList();
+
+                return ListView(
+                  padding: const EdgeInsets.all(20),
+                  children: [
+                    if (myAssignedDocs.isNotEmpty) ...[
+                      _buildSectionHeader('Current Missions', 'Missions you have accepted'),
+                      const SizedBox(height: 16),
+                      ...myAssignedDocs.map((doc) {
+                        final data = doc.data() as Map<String, dynamic>;
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: _buildMissionCard(
+                            id: doc.id,
+                            title: '${data['need_type']?.toString().toUpperCase()} Support',
+                            distance: 'Nearby Ward ${data['ward_id']}',
+                            urgency: data['urgency_tier'] ?? 'High',
+                            time: _formatTimestamp(data['created_at']),
+                            icon: _getIconForNeed(data['need_type']),
+                            color: _getColorForUrgency(data['urgency_tier']),
+                            isAssigned: true,
+                          ),
+                        );
+                      }),
+                      const SizedBox(height: 32),
+                    ],
+
+                    _buildSectionHeader('Nearby Missions', 'Matched to your skills'),
+                    const SizedBox(height: 16),
+                    if (nearbyActiveDocs.isEmpty)
+                      _buildEmptyState()
+                    else
+                      ...nearbyActiveDocs.map((doc) {
+                        final data = doc.data() as Map<String, dynamic>;
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: _buildMissionCard(
+                            id: doc.id,
+                            title: '${data['need_type']?.toString().toUpperCase()} Support',
+                            distance: 'Nearby Ward ${data['ward_id']}',
+                            urgency: data['urgency_tier'] ?? 'High',
+                            time: _formatTimestamp(data['created_at']),
+                            icon: _getIconForNeed(data['need_type']),
+                            color: _getColorForUrgency(data['urgency_tier']),
+                            isAssigned: false,
+                          ),
+                        );
+                      }),
+                    const SizedBox(height: 32),
+                    _buildSectionHeader('Your Impact', 'Overall summary'),
+                    const SizedBox(height: 16),
+                    _buildImpactStats(),
+                  ],
+                );
+              },
             ),
           ),
         ],
       ),
       bottomNavigationBar: _buildBottomNav(),
+    );
+  }
+
+  String _formatTimestamp(dynamic timestamp) {
+    if (timestamp is Timestamp) {
+      final now = DateTime.now();
+      final diff = now.difference(timestamp.toDate());
+      if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+      if (diff.inHours < 24) return '${diff.inHours}h ago';
+      return '${diff.inDays}d ago';
+    }
+    return 'Just now';
+  }
+
+  IconData _getIconForNeed(String? type) {
+    switch (type?.toLowerCase()) {
+      case 'food': return LucideIcons.utensils;
+      case 'water': return LucideIcons.droplets;
+      case 'medicine': return LucideIcons.stethoscope;
+      case 'shelter': return LucideIcons.house;
+      default: return LucideIcons.info;
+    }
+  }
+
+  Color _getColorForUrgency(String? tier) {
+    switch (tier?.toLowerCase()) {
+      case 'critical': return Colors.redAccent;
+      case 'high': return Colors.orangeAccent;
+      default: return Colors.blueAccent;
+    }
+  }
+
+  Widget _buildEmptyState() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 40),
+      child: Column(
+        children: [
+          Icon(LucideIcons.shieldCheck, size: 48, color: Colors.blueGrey.withOpacity(0.2)),
+          const SizedBox(height: 16),
+          const Text(
+            'All clear! No pending missions.',
+            style: TextStyle(color: Colors.blueGrey, fontSize: 14),
+          ),
+        ],
+      ),
     );
   }
 
@@ -72,25 +256,34 @@ class MissionBoardScreen extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.tealAccent.withOpacity(0.1), Colors.tealAccent.withOpacity(0.05)],
+          colors: _isOnline 
+              ? [Colors.tealAccent.withOpacity(0.1), Colors.tealAccent.withOpacity(0.05)]
+              : [Colors.blueGrey.withOpacity(0.1), Colors.blueGrey.withOpacity(0.05)],
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.tealAccent.withOpacity(0.2)),
+        border: Border.all(color: _isOnline ? Colors.tealAccent.withOpacity(0.2) : Colors.blueGrey.withOpacity(0.2)),
       ),
       child: Row(
         children: [
-          const Icon(LucideIcons.circleCheck, color: Colors.tealAccent, size: 20),
+          Icon(_isOnline ? LucideIcons.circleCheck : LucideIcons.moon, 
+               color: _isOnline ? Colors.tealAccent : Colors.blueGrey, size: 20),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Text(
-              'You are Active & Discoverable',
-              style: TextStyle(color: Colors.tealAccent, fontWeight: FontWeight.w600, fontSize: 13),
+              _isOnline ? 'You are Active & Discoverable' : 'You are currently Offline',
+              style: TextStyle(
+                color: _isOnline ? Colors.tealAccent : Colors.blueGrey, 
+                fontWeight: FontWeight.w600, 
+                fontSize: 13,
+              ),
             ),
           ),
           Switch(
-            value: true,
-            onChanged: (v) {},
+            value: _isOnline,
+            onChanged: _toggleOnline,
             activeColor: Colors.tealAccent,
+            inactiveThumbColor: Colors.blueGrey,
+            inactiveTrackColor: Colors.blueGrey.withOpacity(0.3),
           ),
         ],
       ),
@@ -114,19 +307,24 @@ class MissionBoardScreen extends StatelessWidget {
   }
 
   Widget _buildMissionCard({
+    required String id,
     required String title,
     required String distance,
     required String urgency,
     required String time,
     required IconData icon,
     required Color color,
+    required bool isAssigned,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.03),
+        color: isAssigned ? Colors.blueAccent.withOpacity(0.08) : Colors.white.withOpacity(0.03),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(
+          color: isAssigned ? Colors.blueAccent.withOpacity(0.3) : Colors.white.withOpacity(0.05),
+          width: isAssigned ? 1.5 : 1,
+        ),
       ),
       child: Column(
         children: [
@@ -178,17 +376,34 @@ class MissionBoardScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(time, style: TextStyle(color: Colors.blueGrey[600], fontSize: 12)),
-              TextButton(
-                onPressed: () {},
-                style: TextButton.styleFrom(foregroundColor: Colors.blueAccent),
-                child: const Row(
-                  children: [
-                    Text('Accept Mission'),
-                    SizedBox(width: 4),
-                    Icon(LucideIcons.arrowRight, size: 14),
-                  ],
-                ),
-              ),
+              isAssigned 
+                ? ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ActiveTaskScreen(signalId: id),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.tealAccent,
+                      foregroundColor: const Color(0xFF0F172A),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                    ),
+                    child: const Text('Open Mission', style: TextStyle(fontWeight: FontWeight.bold)),
+                  )
+                : ElevatedButton(
+                    onPressed: () => _acceptMission(id),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueAccent,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                    ),
+                    child: const Text('Accept Mission'),
+                  ),
             ],
           ),
         ],
@@ -196,12 +411,41 @@ class MissionBoardScreen extends StatelessWidget {
     );
   }
 
+  Future<void> _acceptMission(String signalId) async {
+    try {
+      await _firestore.collection('need_signals').doc(signalId).update({
+        'status': 'assigned',
+        'assigned_volunteers': FieldValue.arrayUnion([_currentUserId]),
+        'triaged_at': FieldValue.serverTimestamp(),
+      });
+      
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ActiveTaskScreen(signalId: signalId),
+        ),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Mission Accepted! Opening navigation...'),
+          backgroundColor: Colors.tealAccent,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to accept: $e'), backgroundColor: Colors.redAccent),
+      );
+    }
+  }
+
   Widget _buildImpactStats() {
     return Row(
       children: [
-        _buildStatCard('12', 'Assists', LucideIcons.users, Colors.blueAccent),
+        _buildStatCard('$_completedMissionsCount', 'Missions', LucideIcons.circleCheck, Colors.blueAccent),
         const SizedBox(width: 12),
-        _buildStatCard('48h', 'Volunteered', LucideIcons.clock, Colors.purpleAccent),
+        _buildStatCard('${_completedMissionsCount * 2}h', 'Volunteered', LucideIcons.clock, Colors.purpleAccent),
       ],
     );
   }
@@ -238,10 +482,28 @@ class MissionBoardScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Icon(LucideIcons.layoutGrid, color: Colors.blueAccent),
-          Icon(LucideIcons.map, color: Colors.blueGrey),
-          Icon(LucideIcons.history, color: Colors.blueGrey),
-          Icon(LucideIcons.settings, color: Colors.blueGrey),
+          IconButton(
+            icon: const Icon(LucideIcons.layoutGrid, color: Colors.blueAccent),
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: const Icon(LucideIcons.map, color: Colors.blueGrey),
+            onPressed: () {
+              Navigator.pushReplacement(context, PageRouteBuilder(pageBuilder: (_, __, ___) => const GlobalMapScreen()));
+            },
+          ),
+          IconButton(
+            icon: const Icon(LucideIcons.history, color: Colors.blueGrey),
+            onPressed: () {
+              Navigator.pushReplacement(context, PageRouteBuilder(pageBuilder: (_, __, ___) => const HistoryScreen()));
+            },
+          ),
+          IconButton(
+            icon: const Icon(LucideIcons.settings, color: Colors.blueGrey),
+            onPressed: () {
+              Navigator.pushReplacement(context, PageRouteBuilder(pageBuilder: (_, __, ___) => const SettingsScreen()));
+            },
+          ),
         ],
       ),
     );

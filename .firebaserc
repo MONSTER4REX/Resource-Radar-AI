@@ -1,5 +1,7 @@
 {
   "projects": {
     "default": "resource-radar-ai"
-  }
+  },
+  "targets": {},
+  "etags": {}
 }
